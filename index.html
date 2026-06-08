@@ -54,14 +54,25 @@
     height: 100%;
     border-radius: 2rem;
     background: transparent;
-    
-    /* 3D diagonal glass edge glow */
     border: none; 
-    box-shadow: inset 1px 1px 3px rgba(255, 255, 255, 0.8), 
-                inset -1px -1px 3px rgba(255, 255, 255, 0.5);
-    
     outline: 0;
     transition: transform 0.3s ease;
+  }
+
+  .glass-3d-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 2rem;
+    /* Soft 3D bevel effect */
+    box-shadow: inset 1.5px 1.5px 3px rgba(255, 255, 255, 0.9), 
+                inset -1.5px -1.5px 3px rgba(255, 255, 255, 0.5);
+    /* Only reveal the bevel at the diagonal corners! */
+    -webkit-mask-image: radial-gradient(circle at top left, black 0%, transparent 35%),
+                        radial-gradient(circle at bottom right, black 0%, transparent 35%);
+    mask-image: radial-gradient(circle at top left, black 0%, transparent 35%),
+                radial-gradient(circle at bottom right, black 0%, transparent 35%);
+    pointer-events: none;
   }
 
   /* removed ::before */
