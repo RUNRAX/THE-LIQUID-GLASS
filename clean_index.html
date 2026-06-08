@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Spherical Glass Lens</title>
+<style>
+  html, body {
+    height: 100%;
+    min-height: 300vh;
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    overflow-x: hidden;
+    background: #000;
+  }
+  
+  .bg {
+    position: absolute; /* Make it absolute so it scrolls naturally with the page */
+    inset: 0;
+    z-index: 0;
+  }
+  
+  .bg img {
+    width: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  .glass-container {
+    position: fixed;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+    width: 480px;
+    height: 320px;
+    z-index: 10;
+  }
+
+  .frost-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 2rem;
+    
+    /* Constant blur/refraction */
+    backdrop-filter: url(#glass-dispersion);
+    -webkit-backdrop-filter: url(#glass-dispersion);
+  }
+
+  .glass-3d-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 2rem;
+    background: transparent;
+    
+    /* Light -63° 80% & Depth 29 */
+    border: none; 
+    
+    /* box-shadow removed */
+    outline: 0;
+    transition: transform 0.3s ease;
+  }
+
+  /* removed ::before */
+
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <img src="Vibrant-Summer-Meadow-Watercolor.png" alt="">
+  <img src="bg1.png" alt="">
+  <img src="bg2.png" alt="">
+  <img src="bg3.png" alt="">
+</div>
+
+<div class="glass-container">
+  
+  
+
+  
+  
+
+  
+  <div style="position: absolute; inset: 0; border-radius: 2rem; overflow: hidden; pointer-events: none;">
+    <div id="internal-bg" style="position: absolute; left: calc(-50vw + 240px); top: calc(-50vh + 160px); width: 100vw; transform: scale(1.8); will-change: transform, top; filter: blur(5px) contrast(1.2) saturate(1.1);">
+
+      <img src="Vibrant-Summer-Meadow-Watercolor.png" style="width: 100%; display: block;" alt="">
+      <img src="bg1.png" style="width: 100%; display: block;" alt="">
+      <img src="bg2.png" style="width: 100%; display: block;" alt="">
+      <img src="bg3.png" style="width: 100%; display: block;" alt="">
+
+    </div>
+  </div>
+
+  <div class="frost-layer" id="frost-layer"></div>
+  <button id="btn" class="glass-3d-overlay"></button>
+</div>
+
+<svg aria-hidden="true" style="position:absolute;width:0;height:0">
+  <!-- Increase filter bounds to 300% to prevent the massive displacement from clipping the edges (which causes the blue/cyan artifacts) -->
+  <filter id="glass-dispersion" x="-100%" y="-100%" width="300%" height="300%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+    
+    <!-- Frost -->
+    <feGaussianBlur in="SourceGraphic" stdDeviation="0" result="frosted"/>
+    
+    <!-- Refraction Map -->
+    <feImage href="data:image/bmp;base64,[...BASE64_DISPLACEMENT_MAP_OMITTED...]" x="0" y="0" width="480" height="320" preserveAspectRatio="none" result="raw-map"/>
+    <feGaussianBlur in="raw-map" stdDeviation="2" result="smooth-map"/>
+    
+    <!-- Chromatic Aberration / Dispersion (90 spread) -->
+    <!-- RED CHANNEL: Refraction 140 + 45 = 185 -->
+    <feColorMatrix in="frosted" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red-channel"/>
+    <feDisplacementMap in="red-channel" in2="smooth-map" scale="200" xChannelSelector="R" yChannelSelector="G" result="displaced-red"/>
+    
+    <!-- GREEN CHANNEL: Refraction 140 -->
+    <feColorMatrix in="frosted" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green-channel"/>
+    <feDisplacementMap in="green-channel" in2="smooth-map" scale="180" xChannelSelector="R" yChannelSelector="G" result="displaced-green"/>
+    
+    <!-- BLUE CHANNEL: Refraction 140 - 45 = 95 -->
+    <feColorMatrix in="frosted" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue-channel"/>
+    <feDisplacementMap in="blue-channel" in2="smooth-map" scale="160" xChannelSelector="R" yChannelSelector="G" result="displaced-blue"/>
+    
+    <!-- Merge RGB Channels -->
+    <feComposite in="displaced-red" in2="displaced-green" operator="arithmetic" k2="1" k3="1" result="rg"/>
+    <feComposite in="rg" in2="displaced-blue" operator="arithmetic" k2="1" k3="1" result="final-dispersion"/>
+    <feGaussianBlur in="final-dispersion" stdDeviation="0.5"/>
+  </filter>
+</svg>
+
+
+
+
+
+<script>
+  const bg = document.getElementById('internal-bg');
+  let lastScrollY = -1;
+  
+  function updateGlass() {
+    const scrollY = window.scrollY;
+    if (scrollY !== lastScrollY && bg) {
+      bg.style.top = `calc(-50vh + 160px - ${scrollY}px)`;
+      bg.style.transformOrigin = `50vw calc(50vh + ${scrollY}px)`;
+      lastScrollY = scrollY;
+    }
+    requestAnimationFrame(updateGlass);
+  }
+  
+  requestAnimationFrame(updateGlass);
+</script>
+</body>
+
+
+
+</html>
